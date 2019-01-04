@@ -1,6 +1,7 @@
 import math
 import pygame
 import random
+import genalg
 
 # Define some colors
 BLACK = (0, 0, 0)
@@ -183,11 +184,17 @@ class Player(pygame.sprite.Sprite):
     def set_surface(self, surface:pygame.Surface):
         self.surface = surface
 
-    def cpumove(self, ball:Ball):
-        if ball.rect.top< self.rect.top and ball.rect.x>400:
-            self.moveup()
-        if ball.rect.bottom > self.rect.bottom and ball.rect.x>400:
-            self.movedown()
+    def cpumove(self, ball:Ball, perfect = False):
+        if perfect:
+            if ball.rect.top < self.rect.top:
+                self.moveup()
+            if ball.rect.bottom > self.rect.bottom:
+                self.movedown()
+        else:
+            if ball.rect.top < self.rect.top and ball.rect.x > 400:
+                self.moveup()
+            if ball.rect.bottom > self.rect.bottom and ball.rect.x > 400:
+                self.movedown()
 
 
     def draw(self):
@@ -216,10 +223,11 @@ class Player(pygame.sprite.Sprite):
 
 
 def start():
-
-    # Define some colors
-    GREEN = (0, 255, 0)
-    RED = (255, 0, 0)
+    fps = 60
+    popsize = 20
+    pop = genalg.RedNeuronalGA(popsize,[3, [4,4,3]],5,0.01, 0.1)
+    current = 0
+    pop.initialize()
 
     pygame.init()
 
@@ -249,7 +257,8 @@ def start():
     while not done:
         data = [ball.direction, ball.x, ball.y, ball.speed, p1.rect.y]
         score = [ball.p1, ball.p1bounce, ball.p2, ball.p2bounce]
-        print(data, score)
+        cpuscore = ball.p2
+        #print(data, score)
 
         # --- Main event loop
         for event in pygame.event.get():
@@ -265,12 +274,27 @@ def start():
                     p1.down = True
                     p1.up = False
                 if event.key == pygame.K_a:
-                    ball.reset()
+                    #ball.reset()
+                    fps = 60
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_UP:
                     p1.up = False
                 if event.key == pygame.K_DOWN:
                     p1.down = False
+                if event.key == pygame.K_a:
+                    #ball.reset()
+                    fps = 10000
+        #print(len(pop.current_generation))
+        val = pop.current_generation[current].calc(data)
+        print(val)
+        arriba, abajo, nada = val
+        print(arriba, abajo)
+        if nada<0.7:
+            if arriba > abajo:
+                p1.moveup()
+            if abajo > arriba:
+                p1.movedown()
+
 
         if p1.rect.colliderect(ball.rect):
             ball.bouncep1()
@@ -294,7 +318,22 @@ def start():
         ball.draw()
         ball.update()
         p1.update()
-        cpu.cpumove(ball)
+        #true para cpu inmortal, falso para modo normal
+        cpu.cpumove(ball, True)
+
+        if ball.p2 > cpuscore:
+            print('nuevo juego')
+            pop.current_fitness.append(score[1])
+            if current == popsize-1:
+                print(pop.current_fitness)
+                #tengo que cambiar esto
+                #aqui se hace la mutacion/ reproduccion
+                pop.find()
+                current = 0
+            else:
+                current+=1
+            print(current)
+
 
         # --- Drawing code should go here
 
@@ -302,11 +341,12 @@ def start():
         pygame.display.flip()
 
         # --- Limit to 60 frames per second
-        clock.tick(60)
+        clock.tick(fps)
 
         #when we finish a game
-        if ball.p1bounce == 5:
+        if ball.p1bounce == 100:
             done = True
+            print(pop.current_generation[current])
 
     screen.fill(WHITE)
     pygame.display.flip()

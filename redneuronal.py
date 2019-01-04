@@ -38,11 +38,15 @@ class RedN:
         r = 0
         r+= self.getbias(neuron)
         for i, xi in enumerate(data):
-            r+=xi * neuron[i]
+            v = self.normalize(xi)
+            r+=v * neuron[i]
         return self.f(r)
 
     def f(self, z):
         return 1 / (1 + math.exp(-z))
+
+    def normalize(self, x):
+        return (x+10)/20
 
 
 
