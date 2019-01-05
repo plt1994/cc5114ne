@@ -51,10 +51,10 @@ class RedNeuronalGA:
                     else:
                         for p in range(self.config[1][j-1]):
                             neuron.append(random.random()*2)
-                    neuron.append(random.randint(-2,2))
+                    neuron.append(0.8)
                     layer.append(neuron)
                 red.append(layer)
-            self.current_generation.append(redneuronal.RedN(red))
+            self.current_generation.append(redneuronal.RedN(red, i))
 
     def tournament_selection(self, population: list, k):
         ''' Randomly select the best individual after k iterations'''
@@ -67,7 +67,7 @@ class RedNeuronalGA:
         return best
 
 
-    def reproduce(self, red1:redneuronal.RedN, red2:redneuronal.RedN):
+    def reproduce(self, red1:redneuronal.RedN, red2:redneuronal.RedN, index):
         nlayers = len(red1.red)
         new = []
         for i in range(nlayers):
@@ -83,7 +83,7 @@ class RedNeuronalGA:
                 else:
                     baby.append(rep[i])
             new.append(baby)
-        return redneuronal.RedN(new)
+        return redneuronal.RedN(new, index)
 
 
     def find(self):
@@ -98,27 +98,32 @@ class RedNeuronalGA:
                 self.current_generation.remove(sel)
         # crear nueva generacion a partir de los mejores anteriores
         gen = []
+        count = 0
         while (len(gen) < size):
             ind1, ind2 = random.sample(best, 2)
-            baby = self.reproduce(ind1, ind2)
+            baby = self.reproduce(ind1, ind2,count)
+            count+=1
             gen.append(baby)
         self.current_generation = gen
         self.savefitness()
         self.current_fitness = []
 
 
-    def fitness(self, ind):
-        for i in range(self.pop_size):
-            if ind is self.current_generation[i]:
-                return self.current_fitness[i]
+    def fitness(self, ind:redneuronal.RedN):
+        return self.current_fitness[ind.index]
 
     def savefitness(self):
         self.totalfitness.append(statistics.mean(self.current_fitness))
 
     def mutneuron(self, neuron:list):
+        print('mutante!')
         new = []
-        for i in neuron:
-            new.append(random.random()*2)
+        for i in range(len(neuron)-1):
+            if random.random()<0.5:
+                new.append(random.random() * 2)
+            else:
+                new.append(neuron[i])
+        new.append((neuron[-1]+random.random())%2)
         return new
 
 

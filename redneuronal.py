@@ -1,7 +1,8 @@
 import math
 
 class RedN:
-    def __init__(self, layers:list):
+    def __init__(self, layers:list, index = 0):
+        self.index = index
         self.red = layers
         self.outputs = []
         for layer in layers:

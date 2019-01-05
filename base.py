@@ -224,8 +224,8 @@ class Player(pygame.sprite.Sprite):
 
 def start():
     fps = 60
-    popsize = 20
-    pop = genalg.RedNeuronalGA(popsize,[3, [4,4,3]],5,0.01, 0.1)
+    popsize = 100
+    pop = genalg.RedNeuronalGA(popsize,[2, [4,3]],5,0.01, 0.1)
     current = 0
     pop.initialize()
 
@@ -286,10 +286,10 @@ def start():
                     fps = 10000
         #print(len(pop.current_generation))
         val = pop.current_generation[current].calc(data)
-        print(val)
+        #print(val)
         arriba, abajo, nada = val
-        print(arriba, abajo)
-        if nada<0.7:
+        #print(arriba, abajo)
+        if nada<0.9:
             if arriba > abajo:
                 p1.moveup()
             if abajo > arriba:
@@ -322,17 +322,17 @@ def start():
         cpu.cpumove(ball, True)
 
         if ball.p2 > cpuscore:
-            print('nuevo juego')
+            #print('nuevo juego')
             pop.current_fitness.append(score[1])
             if current == popsize-1:
-                print(pop.current_fitness)
                 #tengo que cambiar esto
                 #aqui se hace la mutacion/ reproduccion
                 pop.find()
+                print(pop.totalfitness)
                 current = 0
             else:
                 current+=1
-            print(current)
+            #print(current)
 
 
         # --- Drawing code should go here
@@ -346,7 +346,7 @@ def start():
         #when we finish a game
         if ball.p1bounce == 100:
             done = True
-            print(pop.current_generation[current])
+            #print(pop.current_generation[current])
 
     screen.fill(WHITE)
     pygame.display.flip()
